@@ -102,7 +102,8 @@ jobs:
           conda config --show-sources
           python -c 'import bioconda_utils.utils as u ; import pathlib as p ; print(*(f"{f}:\n{p.Path(f).read_text()}" for f in u.load_conda_build_config().exclusive_config_files), sep="\n")'
           echo '============'
-          bioconda-utils lint --loglevel debug --git-range origin/"$GITHUB_BASE_REF" HEAD
+          source ./.github/racecar-git-range.sh
+          bioconda-utils lint --loglevel debug --git-range "$RACECAR_GIT_BASE" HEAD
           conda clean -y --all
 
   build-linux:
@@ -200,9 +201,10 @@ jobs:
           conda activate bioconda
           source common.sh
 
+          source ./.github/racecar-git-range.sh
           bioconda-utils build recipes config.yml \
             --docker --mulled-test \
-            --git-range origin/"$GITHUB_BASE_REF" HEAD
+            --git-range "$RACECAR_GIT_BASE" HEAD
 
       - name: Prepare artifacts
         run: |
