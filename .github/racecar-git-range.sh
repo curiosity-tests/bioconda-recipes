@@ -19,8 +19,14 @@
 #    `export GITHUB_BASE_REF="..." >> $GITHUB_ENV` redirects export's empty
 #    stdout instead of writing to the env file, so nothing reaches later steps.)
 
-git remote get-url racecar-upstream >/dev/null 2>&1 ||
+if ! git remote get-url racecar-upstream >/dev/null 2>&1; then
   git remote add racecar-upstream https://github.com/bioconda/bioconda-recipes.git
+  # Nothing in `lint`/`build` writes to a remote, but actions/checkout installs
+  # its GITHUB_TOKEN extraheader for every github.com URL in this repo, so make
+  # the remote structurally read-only rather than relying on that token having
+  # no write scope upstream.
+  git remote set-url --push racecar-upstream no-push.invalid/bioconda/bioconda-recipes
+fi
 
 if [ -n "${GITHUB_BASE_REF:-}" ] && git rev-parse --verify --quiet "origin/${GITHUB_BASE_REF}" >/dev/null; then
   RACECAR_GIT_BASE="origin/${GITHUB_BASE_REF}"
